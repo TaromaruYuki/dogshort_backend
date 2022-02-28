@@ -1,0 +1,22 @@
+{
+    "name": "dogshort-backend",
+    "version": "1.0.0",
+    "repository": "https://github.com/TaromaruYuki/dogshort_backend.git",
+    "author": "TaromaruYuki <taromaruyuki@gmail.com>",
+    "license": "BSD-3-Clause",
+    "scripts": {
+        "build": "tsc",
+        "start": "node build/index.js",
+        "compile": "yarn build && yarn start",
+        "dev": "nodemon -e ts --exec \"yarn compile\""
+    },
+    "dependencies": {
+        "@types/node": "^17.0.21",
+        "@types/pino": "^7.0.5",
+        "dotenv": "^16.0.0",
+        "fastify": "^3.27.2",
+        "mysql2": "^2.3.3",
+        "nodemon": "^2.0.15",
+        "typescript": "^4.5.5"
+    }
+}
