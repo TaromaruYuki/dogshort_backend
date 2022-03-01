@@ -41,9 +41,45 @@ interface IURL {
     url: string;
 }
 
+interface IURLParams {
+    url_path: string
+}
+
+interface IRes {
+    id: number,
+    url: string,
+    path: string
+}
+
 // End of interfaces
 
 // Methods
+
+server.get("/", async (request, reply) => {
+    return {
+        routes: {
+            get: ["/", "/:url_path"],
+            post: ["/"]
+        }
+    }
+});
+
+server.get<{
+    Params: IURLParams
+}>("/:url_path", {
+    preValidation: (request, reply, done) => {
+        if(request.params !== null) {
+            if(request.params.url_path)
+        } else {
+            reply.code(400).send({
+                error: "No url param given."
+            });
+        }
+    }
+}, async (request, reply) => {
+
+    return null;
+});
 
 server.post<{
     Body: IURL
@@ -64,23 +100,24 @@ server.post<{
         }
     }
 }, async (request, reply) => {
-    const { url } = request.body;
+    const body_url = request.body.url;
+    const url = new URL(body_url);
+    console.log(url);
 
-    if(!validURL(url)) {
-        reply.code(400);
-        return {
-            error: "URL is not valid"
-        };
-    }
-
-    const [rows_t] = await pool.query("SELECT * FROM urls WHERE url = ?", [url]);
+    const [rows_t] = await pool.query("SELECT * FROM urls WHERE url = ?", [url.href]);
     const rows = rows_t as RowDataPacket[];
 
     if(rows.length != 0) {
-
+        // There should only be 1 row, so it should be the first index
+        const url_row = rows[0] as IRes;
+        return {
+            url: `https://${process.env.DOMAIN}/${url_row.path}`
+        }
+    } else {
+        console.log("URL does not exist!")
     }
 
-    return {}
+    reply.code(204);
 });
 
 // End of methods
