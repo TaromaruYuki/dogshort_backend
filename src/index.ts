@@ -33,6 +33,17 @@ const validURL = (url: string): boolean => {
     return pattern.test(url);
 }
 
+const generatePath = (): string => {
+    let outString = '';
+    let inOptions = 'abcdefghijkmnopqrstuvwxyzABCDEFGHJKMNOPQRSTUVWXYZ123456789';
+
+    for (let i = 0; i < 7; i++) {
+      outString += inOptions.charAt(Math.floor(Math.random() * inOptions.length));
+    }
+
+    return outString;
+}
+
 // End of functions
 
 // Interfaces
@@ -69,7 +80,19 @@ server.get<{
 }>("/:url_path", {
     preValidation: (request, reply, done) => {
         if(request.params !== null) {
-            if(request.params.url_path)
+            if(request.params.url_path !== undefined) {
+                if(request.params.url_path.length == 7) {
+                    done();
+                } else {
+                    reply.code(400).send({
+                        error: `Path ${request.params.url_path} is too long or too short. Needs 7 characters.`
+                    });
+                }
+            } else {
+                reply.code(400).send({
+                    error: "No url param given."
+                });
+            }
         } else {
             reply.code(400).send({
                 error: "No url param given."
@@ -77,8 +100,24 @@ server.get<{
         }
     }
 }, async (request, reply) => {
+    const { url_path } = request.params;
 
-    return null;
+    const [rows_t] = await pool.query("SELECT * from urls WHERE path = ?", [url_path]);
+    const row = rows_t as RowDataPacket[];
+
+    if(row.length <= 0) {
+        reply.code(404);
+
+        return {
+            error: `Path ${url_path} not found.`
+        };
+    }
+
+    // It should be safe to take the first index
+    // since there can't be any duplicated paths
+
+    const url_info = row[0] as IRes;
+    reply.redirect(301, url_info.url);
 });
 
 server.post<{
@@ -114,10 +153,14 @@ server.post<{
             url: `https://${process.env.DOMAIN}/${url_row.path}`
         }
     } else {
-        console.log("URL does not exist!")
-    }
+        const path = generatePath();
 
-    reply.code(204);
+        const [rows_t] = await pool.execute(`INSERT INTO urls (\`url\`, \`path\`) VALUES ('${url.href}', '${path}')`);
+
+        return {
+            url: `https://${process.env.DOMAIN}/${path}`
+        }
+    }
 });
 
 // End of methods
