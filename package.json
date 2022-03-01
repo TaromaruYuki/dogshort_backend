@@ -10,6 +10,9 @@
         "compile": "yarn build && yarn start",
         "dev": "nodemon -e ts --exec \"yarn compile\""
     },
+    "engines": {
+        "node": "16.12.0"
+    },
     "dependencies": {
         "@types/node": "^17.0.21",
         "@types/pino": "^7.0.5",

@@ -3,6 +3,7 @@ import { fastify } from 'fastify';
 import pino from 'pino';
 import { createPool, RowDataPacket } from 'mysql2';
 import 'dotenv/config';
+const http = require('http');
 const port = process.env.PORT || 3000;
 
 const server = fastify({
@@ -176,6 +177,10 @@ const start = async () => {
         process.exit(1);
     }
 };
+
+setInterval(() => {
+  http.get(`https://dogst.tk/`);
+}, 280000);
 
 start();
 
